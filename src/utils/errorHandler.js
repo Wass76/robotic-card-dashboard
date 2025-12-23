@@ -11,6 +11,18 @@ export const handleApiError = (error) => {
     };
   }
   
+  // Handle CORS errors
+  if (error.corsError) {
+    return {
+      message: error.message || 'خطأ في إعدادات CORS على الخادم. يرجى التحقق من إعدادات الخادم.',
+      status: 0,
+      data: null,
+      networkError: true,
+      corsError: true,
+      originalMessage: error.originalMessage
+    };
+  }
+
   // Handle fetch-style errors (from ApiService)
   if (error.status !== undefined) {
     // Check if error message contains HTML

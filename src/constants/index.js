@@ -40,6 +40,7 @@ export const STATIC_DATA = Object.freeze({
 export const API_ENDPOINTS = {
   LOGIN: '/api/login',
   LOGOUT: '/api/logoutFromApp',
+  LOGOUT_FROM_CLUB: '/api/logoutFromClub',
   PROFILE: '/api/profile',
   USERS: '/api/User',
   USER_BY_ID: (id) => `/api/User/${id}`,
@@ -152,7 +153,6 @@ export const DATE_FORMATS = {
 export const DELAYS = {
   MODAL_TRANSITION: 100,
   DEBOUNCE_SEARCH: 300,
-  MOCK_API_DELAY: 500,
   TOAST_DURATION: 3000,
   ANIMATION_DURATION: 300,
 };

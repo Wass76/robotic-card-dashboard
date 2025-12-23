@@ -68,7 +68,7 @@ const Modal = ({
           </div>
         ) : (
           // When title exists, use default scrollable wrapper
-          <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 p-4">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col p-6">
             {children}
           </div>
         )}

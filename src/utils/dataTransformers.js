@@ -51,8 +51,14 @@ const snakeToCamel = (str) => {
 
 /**
  * Convert camelCase to snake_case
+ * Preserves certain keys that API expects with specific casing (e.g., Phone)
  */
 const camelToSnake = (str) => {
+  // Preserve keys that API expects with capital letters
+  const preservedKeys = ['Phone']; // API expects Phone, not phone or _phone
+  if (preservedKeys.includes(str)) {
+    return str;
+  }
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
 

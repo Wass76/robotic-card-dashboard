@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu, X, Search, LogOut } from 'lucide-react';
-import { useAuth } from '../../hooks';
+import { useAuth } from '../../context';
 
 const Header = ({
   sidebarOpen,

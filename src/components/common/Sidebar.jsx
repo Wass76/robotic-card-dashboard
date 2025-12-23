@@ -1,6 +1,7 @@
 import React from 'react';
+import { format, parseISO } from 'date-fns';
 import { Activity } from 'lucide-react';
-import { useApp } from '../../context';
+import { useStatsQuery } from '../../features/admin/stats/hooks';
 import { SIDEBAR_ITEMS } from '../../constants';
 
 const Sidebar = ({
@@ -9,7 +10,7 @@ const Sidebar = ({
   sidebarOpen,
   setSidebarOpen
 }) => {
-  const { stats } = useApp();
+  const { data: stats } = useStatsQuery();
   return (
     <>
       {/* Mobile overlay */}
@@ -76,7 +77,7 @@ const Sidebar = ({
               <span className="text-sm font-medium">النظام متصل</span>
             </div>
             <p className="text-xs text-blue-100">
-              آخر تحديث: {stats?.lastSync ? new Date(stats.lastSync).toLocaleTimeString('ar-SA') : new Date().toLocaleTimeString('ar-SA')}
+              آخر تحديث: {stats?.lastSync ? format(parseISO(stats.lastSync), 'HH:mm') : format(new Date(), 'HH:mm')}
             </p>
           </div>
         </div>
