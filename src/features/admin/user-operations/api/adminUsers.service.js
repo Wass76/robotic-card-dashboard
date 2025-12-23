@@ -56,7 +56,18 @@ export const getUsers = async () => {
  * @returns {Promise<User>} User data
  */
 export const getUserById = async (userId) => {
-  return api.get(API_ENDPOINTS.USER_BY_ID(userId));
+  const response = await api.get(API_ENDPOINTS.USER_BY_ID(userId));
+  
+  // Handle nested response structure: { user: {...} }
+  // The API returns: { code: 200, message: "...", data: { user: {...} } }
+  // api.js unwraps to: { user: {...} }
+  // We need to extract the user object
+  if (response && typeof response === 'object' && response.user) {
+    return response.user;
+  }
+  
+  // Fallback: return response as-is if structure is different
+  return response;
 };
 
 /**
