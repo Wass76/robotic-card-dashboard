@@ -11,7 +11,7 @@ import ErrorMessage from '../../../../components/common/ErrorMessage';
 
 const CardsManagement = () => {
   const { data: users = [] } = useUsersQuery();
-  const { data: cards = [], isLoading: cardsLoading, error: cardsError } = useCardsQuery();
+  const { data: cardsData, isLoading: cardsLoading, error: cardsError } = useCardsQuery();
   const createCardMutation = useCreateCardForUserMutation();
   const updateCardMutation = useUpdateCardMutation();
   const deleteCardMutation = useDeleteCardMutation();
@@ -19,18 +19,28 @@ const CardsManagement = () => {
   const cardModal = useModal();
   const deleteConfirmModal = useModal();
 
+  // Ensure cards is always an array
+  const cards = Array.isArray(cardsData) ? cardsData : [];
+
   const handleSubmit = async (formData) => {
     try {
       if (cardModal.mode === 'create') {
+        // For create, API expects only { code: "..." } in the body
+        // user_id is passed in the URL
         await createCardMutation.mutateAsync({
           userId: formData.user_id,
-          payload: formData,
+          payload: {
+            code: formData.code,
+          },
         });
         toast.showSuccess('تم إضافة البطاقة بنجاح');
       } else {
+        // For update, send the form data (may include code or other fields)
         await updateCardMutation.mutateAsync({
           cardId: cardModal.data.id,
-          payload: formData,
+          payload: {
+            code: formData.code || formData.card_id,
+          },
         });
         toast.showSuccess('تم تحديث البطاقة بنجاح');
       }
@@ -89,15 +99,15 @@ const CardsManagement = () => {
                 <tbody>
                   {cards.map((card) => (
                     <tr key={card.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 font-mono">{card.card_id || card.id}</td>
+                      <td className="py-3 px-4 font-mono">{card.code || card.card_id || card.id}</td>
                       <td className="py-3 px-4">
                         {users.find(u => u.id === card.user_id)?.first_name || 'غير معين'}
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          card.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          (card.status === 'active' || card.status === undefined) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
-                          {card.status === 'active' ? 'نشط' : 'غير نشط'}
+                          {(card.status === 'active' || card.status === undefined) ? 'نشط' : 'غير نشط'}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">

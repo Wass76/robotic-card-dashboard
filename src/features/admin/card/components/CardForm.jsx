@@ -17,7 +17,7 @@ const CardForm = ({ card, users, onSubmit, onClose, loading }) => {
   } = useForm({
     resolver: zodResolver(cardSchema),
     defaultValues: {
-      card_id: '',
+      code: '',
       user_id: '',
     },
   });
@@ -25,12 +25,12 @@ const CardForm = ({ card, users, onSubmit, onClose, loading }) => {
   useEffect(() => {
     if (card) {
       reset({
-        card_id: card.card_id || '',
+        code: card.code || card.card_id || '',
         user_id: card.user_id || '',
       });
     } else {
       reset({
-        card_id: '',
+        code: '',
         user_id: '',
       });
     }
@@ -74,7 +74,7 @@ const CardForm = ({ card, users, onSubmit, onClose, loading }) => {
           </div>
         )}
         <Controller
-          name="card_id"
+          name="code"
           control={control}
           render={({ field }) => (
             <Input
@@ -83,7 +83,7 @@ const CardForm = ({ card, users, onSubmit, onClose, loading }) => {
               value={field.value}
               onChange={field.onChange}
               placeholder="أدخل رقم البطاقة"
-              error={errors.card_id?.message}
+              error={errors.code?.message}
             />
           )}
         />

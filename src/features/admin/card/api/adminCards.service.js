@@ -23,7 +23,13 @@ export const createCardForUser = async (userId, payload) => {
  * @returns {Promise<Card[]>} Array of cards
  */
 export const getCards = async () => {
-  return api.get(API_ENDPOINTS.CARDS);
+  const response = await api.get(API_ENDPOINTS.CARDS);
+  // Handle API response structure: { "All Cards": [...] }
+  if (response && typeof response === 'object' && 'All Cards' in response) {
+    return Array.isArray(response['All Cards']) ? response['All Cards'] : [];
+  }
+  // Fallback: if response is already an array, return it
+  return Array.isArray(response) ? response : [];
 };
 
 /**
