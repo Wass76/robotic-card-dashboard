@@ -106,16 +106,21 @@ docker compose ps
 docker compose logs -f
 ```
 
-## Step 5: Configure Nginx as Reverse Proxy (Optional but Recommended)
+## Step 5: Configure Nginx as Reverse Proxy (Recommended)
 
-If you want to use Nginx as a reverse proxy (for SSL, load balancing, etc.):
+Since port 80 is likely already in use, we'll use Nginx as a reverse proxy on port 80 that forwards to the Docker container on port 8082 (ports 8080 and 8081 are already in use by other containers).
 
-### Install Nginx:
+### Check what's using port 80:
 ```bash
-sudo apt install -y nginx
+sudo netstat -tulpn | grep :80
+# or
+sudo lsof -i :80
 ```
 
-### Create Nginx configuration:
+### Option A: If Nginx is already installed (Recommended)
+
+If Nginx is already running, create a new configuration:
+
 ```bash
 sudo nano /etc/nginx/sites-available/robotic-dashboard
 ```
@@ -128,7 +133,7 @@ server {
     server_name robotic-dashboard.nexussolutions.tech;
 
     location / {
-        proxy_pass http://localhost:80;
+        proxy_pass http://localhost:8082;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -141,12 +146,38 @@ server {
 }
 ```
 
+### Option B: If you need to install Nginx
+
+```bash
+sudo apt install -y nginx
+sudo nano /etc/nginx/sites-available/robotic-dashboard
+```
+
+Add the same configuration as above.
+
 ### Enable the site:
 ```bash
 sudo ln -s /etc/nginx/sites-available/robotic-dashboard /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
+
+### Option C: Stop the service using port 80 (if not needed)
+
+If you don't need the service using port 80, you can stop it:
+
+```bash
+# If it's Apache
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+
+# If it's another Nginx instance
+sudo systemctl stop nginx
+# Or remove the default site
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+Then update `docker-compose.yml` to use port 80 directly (change `8082:80` back to `80:80`).
 
 ## Step 6: Install SSL Certificate with Let's Encrypt (Recommended)
 
@@ -165,18 +196,23 @@ The certificate will auto-renew. You can test renewal with:
 sudo certbot renew --dry-run
 ```
 
-## Step 7: Update Docker Compose (if using Nginx reverse proxy)
+## Step 7: Docker Container Port Configuration
 
-If you're using Nginx reverse proxy, update `docker-compose.yml` to use port 8080 instead of 80, then update the Nginx config accordingly:
+The Docker container is configured to run on port 8082 (mapped to container port 80) to avoid conflicts with existing web servers. 
+
+**Note:** Ports 8080 and 8081 are already in use by other containers (`nexus_portfolio` and `genius-planet-frontend`), so we're using port 8082.
+
+If you stopped the service using port 80 and want to use port 80 directly, update `docker-compose.yml`:
 
 ```yaml
 ports:
-  - "8080:80"
+  - "80:80"  # Change from 8082:80 to 80:80
 ```
 
-And update Nginx proxy_pass to:
-```nginx
-proxy_pass http://localhost:8080;
+Then restart the container:
+```bash
+docker compose down
+docker compose up -d --build
 ```
 
 ## Step 8: Verify Deployment

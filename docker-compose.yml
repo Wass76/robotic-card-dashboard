@@ -11,7 +11,7 @@ services:
     container_name: robotics-dashboard
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8082:80"  # Map host port 8082 to container port 80 (8080 and 8081 are already in use)
     networks:
       - robotics-network
 
