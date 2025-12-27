@@ -18,7 +18,7 @@ import react from '@vitejs/plugin-react'
  * 
  * 3. [PROXY-OUT] - Outgoing proxy request:
  *    - Computed final target URL (after rewrite)
- *    - Sanitized outgoing headers
+ *    - Sanitized outgoing headersj
  *    - Check for double /api paths here
  * 
  * 4. [PROXY-RES] - Backend response:
@@ -37,7 +37,7 @@ import react from '@vitejs/plugin-react'
  * - Backend 500: Check [PROXY-RES] status code (not [PROXY-ERR])
  */
 
-/**
+/** 
  * Sanitizes headers by redacting sensitive values
  * @param {Object} headers - Headers object to sanitize
  * @returns {Object} - New object with redacted sensitive values
