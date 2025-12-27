@@ -12,6 +12,7 @@ const UsersManagement = lazy(() => import('../features/admin/user-operations/com
 const UserDetails = lazy(() => import('../features/admin/user-operations/components/UserDetails'));
 const CardsManagement = lazy(() => import('../features/admin/card/components/CardsManagement'));
 const AttendanceRecords = lazy(() => import('../features/admin/attendance/components/AttendanceRecords'));
+const UnknownCards = lazy(() => import('../features/admin/unknown-cards/components/UnknownCards'));
 
 // Loading fallback component
 const RouteLoader = () => (
@@ -90,11 +91,9 @@ const AppRoutes = () => {
                 <Route
                   path="settings"
                   element={
-                    <ComingSoon
-                      title="الإعدادات"
-                      description="إعدادات النظام والتكوين العام"
-                      icon={Settings}
-                    />
+                    <Suspense fallback={<RouteLoader />}>
+                      <UnknownCards />
+                    </Suspense>
                   }
                 />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />

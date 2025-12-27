@@ -54,7 +54,7 @@ const Header = ({
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-700">مشرف النظام</p>
-                <p className="text-xs text-gray-500">وسيم تنبكجي</p>
+                <p className="text-xs text-gray-500">وسيم تنبكجي </p>
               </div>
             </div>
             

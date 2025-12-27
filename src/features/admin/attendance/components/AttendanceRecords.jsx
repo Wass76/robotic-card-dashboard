@@ -54,10 +54,12 @@ const AttendanceRecords = () => {
   const filteredAttendance = useMemo(() => {
     if (!debouncedSearchTerm) return attendance;
     return attendance.filter(record => {
-      // Filter by Login Date or Login Time
+      // Filter by date or time (check both login and logout fields)
+      const date = record.login_date || record.logout_date || record['Login Date'] || record['Logout Date'];
+      const time = record.login_time || record.logout_time || record['Login Time'] || record['Logout Time'];
       return (
-        (record['Login Date'] && record['Login Date'].includes(debouncedSearchTerm)) ||
-        (record['Login Time'] && record['Login Time'].includes(debouncedSearchTerm))
+        (date && date.includes(debouncedSearchTerm)) ||
+        (time && time.includes(debouncedSearchTerm))
       );
     });
   }, [attendance, debouncedSearchTerm]);
@@ -157,31 +159,53 @@ const AttendanceRecords = () => {
             <div className="card">
               <div className="p-4 lg:p-6">
                 <div className="space-y-4">
-                  {filteredAttendance.map((record, index) => (
-                    <div key={`login-${index}`} className="flex items-center justify-between p-3 lg:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-3 lg:gap-4">
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 gradient-robotics rounded-full flex items-center justify-center text-white font-semibold text-sm lg:text-base">
-                          {selectedUser ? (selectedUser.first_name?.charAt(0) || selectedUser.last_name?.charAt(0) || '?') : '🟢'}
+                  {filteredAttendance.map((record, index) => {
+                    // Determine if this is an entry or exit record
+                    const isEntry = record.type === 'entry' || record.type === 'enter' || record.type === 'دخول';
+                    const isExit = record.type === 'Exit' || record.type === 'exit' || record.type === 'ُExit' || record.type === 'خروج';
+                    
+                    // Get date and time based on type
+                    const date = isEntry 
+                      ? (record.login_date || record['Login Date'])
+                      : (record.logout_date || record['Logout Date']);
+                    const time = isEntry
+                      ? (record.login_time || record['Login Time'])
+                      : (record.logout_time || record['Logout Time']);
+                    
+                    return (
+                      <div key={`attendance-${index}`} className="flex items-center justify-between p-3 lg:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center gap-3 lg:gap-4">
+                          <div className="w-10 h-10 lg:w-12 lg:h-12 gradient-robotics rounded-full flex items-center justify-center text-white font-semibold text-sm lg:text-base">
+                            {selectedUser ? (selectedUser.first_name?.charAt(0) || selectedUser.last_name?.charAt(0) || '?') : (isEntry ? '🟢' : '🔴')}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm lg:text-base">
+                              {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : (isEntry ? 'تسجيل دخول' : 'تسجيل خروج')}
+                            </p>
+                            {date && (
+                              <p className="text-xs lg:text-sm text-gray-600 mt-1">
+                                📅 {date}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm lg:text-base">
-                            {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'تسجيل دخول'}
-                          </p>
-                          <p className="text-xs lg:text-sm text-gray-600 mt-1">
-                            {record['Login Date']}
-                          </p>
+                        <div className="text-left">
+                          {time && (
+                            <p className="text-sm font-medium text-gray-900">
+                              🕐 {time}
+                            </p>
+                          )}
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            isEntry
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {isEntry ? '🟢 دخول' : '🔴 خروج'}
+                          </span>
                         </div>
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-gray-900">
-                          {record['Login Time']}
-                        </p>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          🟢 دخول
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {filteredAttendance.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       {attendance.length === 0 ? 'لا توجد سجلات حضور لهذا المستخدم' : 'لا توجد نتائج مطابقة للبحث'}

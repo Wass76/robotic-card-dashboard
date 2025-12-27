@@ -48,9 +48,11 @@ export const API_ENDPOINTS = {
   CARD_BY_ID: (id) => `/api/Card/${id}`,
   CARD_FOR_USER: (userId) => `/api/Card/${userId}`,
   ATTENDANCE: '/api/attendance_records',
+  ATTENDANCE_FOR_ALL_USERS: '/api/attendance_for_all_users',
   USER_ATTENDANCE: (userId) => `/api/Attendance_Records_By_UserId/${userId}`,
   MONTHLY_ATTENDANCE: '/api/monthlyAttendance',
   TRANSACTION: (cardId) => `/api/Transaction/${cardId}`,
+  UNKNOWN_CARDS: '/api/unknown-cards',
 };
 
 // User Roles
@@ -113,12 +115,6 @@ export const SIDEBAR_ITEMS = [
     label: 'سجلات الحضور', 
     icon: Clock, 
     color: 'text-robotics-dark' 
-  },
-  { 
-    id: 'analytics', 
-    label: 'التحليلات', 
-    icon: BarChart3, 
-    color: 'text-robotics-primary' 
   },
   { 
     id: 'settings', 
