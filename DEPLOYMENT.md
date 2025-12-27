@@ -106,7 +106,7 @@ docker compose ps
 docker compose logs -f
 ```
 
-## Step 5: Configure Nginx as Reverse Proxy (Recommended)
+## Step 5: Configure Nginx as Reverse Proxy with SSL (Recommended)
 
 Since port 80 is likely already in use, we'll use Nginx as a reverse proxy on port 80 that forwards to the Docker container on port 8082 (ports 8080 and 8081 are already in use by other containers).
 
@@ -117,84 +117,193 @@ sudo netstat -tulpn | grep :80
 sudo lsof -i :80
 ```
 
-### Option A: If Nginx is already installed (Recommended)
-
-If Nginx is already running, create a new configuration:
+### Install Nginx (if not already installed):
 
 ```bash
-sudo nano /etc/nginx/sites-available/robotic-dashboard
-```
-
-Add the following configuration:
-
-```nginx
-server {
-    listen 80;
-    server_name robotic-dashboard.nexussolutions.tech;
-
-    location / {
-        proxy_pass http://localhost:8082;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-### Option B: If you need to install Nginx
-
-```bash
+sudo apt update
 sudo apt install -y nginx
+```
+
+### Copy the Nginx configuration file:
+
+The project includes a complete Nginx configuration file (`nginx-vps.conf`) with SSL support. Copy it to your VPS:
+
+```bash
+# If you're transferring files via SCP/rsync, the file should already be there
+# Otherwise, create it manually or copy from the project
+sudo cp ~/robotics-dashboard-v3/nginx-vps.conf /etc/nginx/sites-available/robotic-dashboard
+```
+
+### Or create the configuration manually:
+
+```bash
 sudo nano /etc/nginx/sites-available/robotic-dashboard
 ```
 
-Add the same configuration as above.
+You can find the complete configuration in `nginx-vps.conf` in the project root. The key points:
+- HTTP server (port 80) redirects to HTTPS and handles Let's Encrypt challenges
+- HTTPS server (port 443) with SSL configuration
+- Proxies to Docker container on `http://127.0.0.1:8082`
+- Includes security headers, gzip compression, and proper SSL settings
+
+### Create certbot directory (for Let's Encrypt validation):
+
+```bash
+sudo mkdir -p /var/www/certbot
+sudo chown -R www-data:www-data /var/www/certbot
+```
 
 ### Enable the site:
+
 ```bash
 sudo ln -s /etc/nginx/sites-available/robotic-dashboard /etc/nginx/sites-enabled/
 sudo nginx -t
+```
+
+If the test passes, reload Nginx:
+
+```bash
 sudo systemctl reload nginx
 ```
 
-### Option C: Stop the service using port 80 (if not needed)
+## Step 6: Install SSL Certificate with Let's Encrypt (Required for HTTPS)
 
-If you don't need the service using port 80, you can stop it:
-
-```bash
-# If it's Apache
-sudo systemctl stop apache2
-sudo systemctl disable apache2
-
-# If it's another Nginx instance
-sudo systemctl stop nginx
-# Or remove the default site
-sudo rm /etc/nginx/sites-enabled/default
-```
-
-Then update `docker-compose.yml` to use port 80 directly (change `8082:80` back to `80:80`).
-
-## Step 6: Install SSL Certificate with Let's Encrypt (Recommended)
+### Install Certbot (if not already installed):
 
 ```bash
-# Install Certbot
+sudo apt update
 sudo apt install -y certbot python3-certbot-nginx
-
-# Obtain SSL certificate
-sudo certbot --nginx -d robotic-dashboard.nexussolutions.tech
-
-# Follow the prompts and Certbot will automatically configure SSL
 ```
 
-The certificate will auto-renew. You can test renewal with:
+### Verify HTTP is Working First:
+
+Before requesting SSL, make sure your Nginx configuration is correct and the site is accessible via HTTP:
+
+```bash
+# Test Nginx configuration
+sudo nginx -t
+
+# Check if the site is accessible via HTTP (should redirect to HTTPS)
+curl -I http://robotic-dashboard.nexussolutions.tech
+```
+
+You should see a `301` redirect to HTTPS. If not, make sure:
+1. DNS A record points to your VPS IP
+2. Docker container is running on port 8082: `docker compose ps`
+3. Nginx configuration is correct: `sudo nginx -t`
+
+### Obtain SSL Certificate:
+
+**Important:** Since we're using a custom Nginx configuration file, use `certonly` to obtain the certificate without modifying the config:
+
+```bash
+# Obtain certificate only (don't modify Nginx config)
+sudo certbot certonly --nginx -d robotic-dashboard.nexussolutions.tech
+
+# Follow the prompts:
+# - Enter your email address
+# - Agree to terms of service
+# - Certbot will automatically validate the domain
+```
+
+**Alternative:** If the automatic method fails, use standalone mode (temporarily stops Nginx):
+
+```bash
+sudo systemctl stop nginx
+sudo certbot certonly --standalone -d robotic-dashboard.nexussolutions.tech
+sudo systemctl start nginx
+```
+
+**Or use DNS validation** (useful if port 80 is not accessible):
+
+```bash
+sudo certbot certonly --manual --preferred-challenges dns -d robotic-dashboard.nexussolutions.tech
+# Follow the prompts to add TXT record to your DNS
+```
+
+### Verify SSL Certificate Files:
+
+After obtaining the certificate, verify the files exist:
+
+```bash
+sudo ls -la /etc/letsencrypt/live/robotic-dashboard.nexussolutions.tech/
+```
+
+You should see:
+- `fullchain.pem` (SSL certificate)
+- `privkey.pem` (Private key)
+- `chain.pem` (Certificate chain)
+
+### Verify SSL is Working:
+
+The Nginx configuration already includes SSL settings. After obtaining the certificate, test:
+
+```bash
+# Test HTTPS connection
+curl -I https://robotic-dashboard.nexussolutions.tech
+
+# You should see HTTP/2 200 or similar success response
+```
+
+If you get SSL errors, make sure the certificate paths in `/etc/nginx/sites-available/robotic-dashboard` match the actual certificate location.
+
+### Test Certificate Renewal:
+
+Let's Encrypt certificates expire every 90 days, but Certbot automatically renews them. Test the renewal process:
+
 ```bash
 sudo certbot renew --dry-run
 ```
+
+### Manual Renewal (if needed):
+
+```bash
+sudo certbot renew
+sudo systemctl reload nginx
+```
+
+### Troubleshooting SSL Issues:
+
+If you get certificate errors:
+
+1. **Check if certificate exists:**
+   ```bash
+   sudo certbot certificates
+   ```
+
+2. **Check certificate expiration:**
+   ```bash
+   sudo openssl x509 -in /etc/letsencrypt/live/robotic-dashboard.nexussolutions.tech/fullchain.pem -noout -dates
+   ```
+
+3. **Verify certificate paths in Nginx config:**
+   ```bash
+   sudo grep -E "ssl_certificate|ssl_certificate_key" /etc/nginx/sites-available/robotic-dashboard
+   ```
+   Make sure they match the actual certificate location.
+
+4. **If certificate is expired or missing, force renewal:**
+   ```bash
+   sudo certbot renew --force-renewal -d robotic-dashboard.nexussolutions.tech
+   sudo systemctl reload nginx
+   ```
+
+5. **If Certbot fails, check Nginx error logs:**
+   ```bash
+   sudo tail -f /var/log/nginx/robotic-dashboard.error.log
+   sudo tail -f /var/log/nginx/error.log
+   ```
+
+6. **Verify DNS is pointing correctly:**
+   ```bash
+   dig robotic-dashboard.nexussolutions.tech
+   # Should show your VPS IP address
+   ```
+
+7. **Test Nginx configuration:**
+   ```bash
+   sudo nginx -t
+   ```
 
 ## Step 7: Docker Container Port Configuration
 
@@ -266,6 +375,25 @@ sudo netstat -tulpn | grep :80
 - Wait for DNS propagation (can take up to 48 hours, usually faster)
 - Verify A record is set correctly: `robotic-dashboard.nexussolutions.tech` -> your VPS IP
 - Use `dig robotic-dashboard.nexussolutions.tech` or `nslookup robotic-dashboard.nexussolutions.tech` to verify
+
+### SSL Certificate Issues:
+- **Certificate expired or missing:** The subdomain needs its own SSL certificate (separate from main domain)
+  ```bash
+  # Check if certificate exists
+  sudo certbot certificates
+  
+  # Request/renew certificate
+  sudo certbot --nginx -d robotic-dashboard.nexussolutions.tech
+  # Or force renewal if expired:
+  sudo certbot renew --force-renewal -d robotic-dashboard.nexussolutions.tech
+  sudo systemctl reload nginx
+  ```
+- **Certificate errors:** Make sure HTTP works first (`curl -I http://robotic-dashboard.nexussolutions.tech`)
+- **Check certificate expiration:**
+  ```bash
+  sudo openssl x509 -in /etc/letsencrypt/live/robotic-dashboard.nexussolutions.tech/fullchain.pem -noout -dates
+  ```
+- **Verify port 80 is accessible** (required for Let's Encrypt verification)
 
 ### Permission denied errors:
 ```bash
