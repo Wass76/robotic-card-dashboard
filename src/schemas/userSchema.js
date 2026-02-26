@@ -35,10 +35,20 @@ export const userSchema = z.object({
     .max(255, 'البريد الإلكتروني يجب أن يكون أقل من 255 حرف'),
   password: z
     .string()
-    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
-    .max(128, 'كلمة المرور يجب أن تكون أقل من 128 حرف'),
+    .optional()
+    .refine((val) => !val || (val.length >= 6 && val.length <= 128), {
+      message: 'كلمة المرور يجب أن تكون بين 6 و 128 حرف',
+    }),
   role: z.enum(['Admin', 'User'], {
     errorMap: () => ({ message: 'الدور يجب أن يكون Admin أو User' }),
   }),
+});
+
+/** Schema for creating a user (password required) */
+export const userCreateSchema = userSchema.extend({
+  password: z
+    .string()
+    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+    .max(128, 'كلمة المرور يجب أن تكون أقل من 128 حرف'),
 });
 

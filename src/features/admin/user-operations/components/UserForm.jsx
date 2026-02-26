@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Modal from '../../../../components/common/Modal';
 import Input from '../../../../components/common/Input';
 import Button from '../../../../components/common/Button';
-import { userSchema } from '../../../../schemas';
+import { userSchema, userCreateSchema } from '../../../../schemas';
 
 const UserForm = ({ user, onSubmit, onClose, loading }) => {
   const isEditMode = user !== null;
@@ -15,7 +15,7 @@ const UserForm = ({ user, onSubmit, onClose, loading }) => {
     formState: { errors },
     reset,
   } = useForm({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(isEditMode ? userSchema : userCreateSchema),
     defaultValues: {
       first_name: '',
       last_name: '',
@@ -66,7 +66,13 @@ const UserForm = ({ user, onSubmit, onClose, loading }) => {
       year: Number(data.year),
       gender: data.gender.toLowerCase(), // Ensure lowercase for API
     };
-    onSubmit(submitData);
+    // In edit mode, omit empty password so backend does not clear it
+    if (isEditMode && (!submitData.password || submitData.password.trim() === '')) {
+      const { password, ...rest } = submitData;
+      onSubmit(rest);
+    } else {
+      onSubmit(submitData);
+    }
   };
 
   return (
