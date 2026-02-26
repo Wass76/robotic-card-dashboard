@@ -41,20 +41,22 @@ const Modal = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-black/50"
       onClick={closeOnBackdropClick ? onClose : undefined}
     >
       <div
-        className={`bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[95vh] flex flex-col overflow-hidden ${className}`}
+        className={`bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden my-auto ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex-shrink-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
-            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+          <div className="flex-shrink-0 border-b border-gray-200 px-4 py-3 sm:p-4 flex items-center justify-between gap-3 min-h-[52px]">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{title}</h3>
             {showCloseButton && (
               <button
+                type="button"
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex-shrink-0 p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
+                aria-label="إغلاق"
               >
                 <X className="w-5 h-5 text-gray-600" />
               </button>
@@ -62,13 +64,11 @@ const Modal = ({
           </div>
         )}
         {!title ? (
-          // When no title, let children control scrolling
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             {children}
           </div>
         ) : (
-          // When title exists, use default scrollable wrapper
-          <div className="flex-1 min-h-0 overflow-hidden flex flex-col p-6">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col p-4 sm:p-6">
             {children}
           </div>
         )}

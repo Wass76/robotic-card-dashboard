@@ -101,7 +101,13 @@ const CardsManagement = () => {
                     <tr key={card.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4 font-mono">{card.code || card.card_id || card.id}</td>
                       <td className="py-3 px-4">
-                        {users.find(u => u.id === card.user_id)?.first_name || 'غير معين'}
+                        {(() => {
+                        const u = users.find(usr => usr.id === card.user_id);
+                        if (!u) return 'غير معين';
+                        const first = u.first_name ?? u.firstName ?? '';
+                        const last = u.last_name ?? u.lastName ?? '';
+                        return `${first} ${last}`.trim() || 'غير معين';
+                      })()}
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${

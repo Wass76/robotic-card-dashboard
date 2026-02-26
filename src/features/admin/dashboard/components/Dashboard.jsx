@@ -181,9 +181,9 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Recent attendance */}
-        <div className="lg:col-span-2 card">
+        <div className="card">
           <div className="p-4 lg:p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">آخر عمليات الحضور</h3>
@@ -233,30 +233,6 @@ const Dashboard = () => {
                   </div>
                 ))
               )}
-            </div>
-          </div>
-        </div>
-
-        {/* Quick stats */}
-        <div className="card">
-          <div className="p-4 lg:p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">إحصائيات سريعة</h3>
-          </div>
-          <div className="p-4 lg:p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">معدل الحضور اليومي</span>
-              <span className="text-sm font-semibold text-green-600">85%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="gradient-robotics h-2 rounded-full" style={{width: '85%'}}></div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">استخدام RFID</span>
-              <span className="text-sm font-semibold text-blue-600">60%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-500 h-2 rounded-full" style={{width: '60%'}}></div>
             </div>
           </div>
         </div>

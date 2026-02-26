@@ -5,6 +5,7 @@ import { useUsersQuery, useCreateUserMutation, useUpdateUserMutation, useDeleteU
 import { useModal, useDebounce } from '../../../../hooks';
 import { USER_ROLES } from '../../../../constants';
 import { useToast } from '../../../../components/common';
+import { getApiErrorMessage } from '../../../../utils/errorHandler';
 import Button from '../../../../components/common/Button';
 import UserTable from './UserTable';
 import UserForm from './UserForm';
@@ -76,15 +77,13 @@ const UsersManagement = () => {
       toast.showSuccess('تم حذف المستخدم بنجاح');
       deleteConfirmModal.close();
     } catch (err) {
-      toast.showError(err.message || 'فشل في حذف المستخدم');
+      toast.showError(getApiErrorMessage(err) || 'فشل في حذف المستخدم');
     }
   };
 
   const handleCreateUser = async (userData) => {
     try {
       const createdUser = await createUserMutation.mutateAsync(userData);
-      
-      // Verify user was created successfully
       if (createdUser && (createdUser.id || createdUser.email)) {
         toast.showSuccess('تم إضافة المستخدم بنجاح');
         addUserModal.close();
@@ -92,17 +91,8 @@ const UsersManagement = () => {
         toast.showError('تم إرسال الطلب ولكن لم يتم استلام بيانات المستخدم');
       }
     } catch (err) {
-      // Extract error message from various possible error structures
-      const errorMessage = err?.response?.message || 
-                          err?.message || 
-                          err?.error || 
-                          'فشل في إضافة المستخدم';
-      toast.showError(errorMessage);
-      
-      // Log error for debugging (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Create user error:', err);
-      }
+      toast.showError(getApiErrorMessage(err) || 'فشل في إضافة المستخدم');
+      if (process.env.NODE_ENV === 'development') console.error('Create user error:', err);
     }
   };
 
@@ -115,16 +105,17 @@ const UsersManagement = () => {
       toast.showSuccess('تم تحديث المستخدم بنجاح');
       editUserModal.close();
     } catch (err) {
-      toast.showError(err.message || 'فشل في تحديث المستخدم');
+      toast.showError(getApiErrorMessage(err) || 'فشل في تحديث المستخدم');
+      // Modal stays open so user can fix and retry
     }
   };
   
   const actionLoading = createUserMutation.isPending || updateUserMutation.isPending || deleteUserMutation.isPending;
 
   return (
-    <div className="space-y-6 fade-in">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">إدارة المستخدمين</h2>
+    <div className="space-y-4 sm:space-y-6 fade-in overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">إدارة المستخدمين</h2>
         <Button 
           onClick={() => addUserModal.open('create')}
           variant="primary"
@@ -140,26 +131,26 @@ const UsersManagement = () => {
         <div className="p-4 lg:p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="البحث بالاسم أو البريد الإلكتروني..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pr-10 pl-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-robotics-primary focus:border-transparent"
+                  className="w-full min-w-0 pr-10 pl-4 py-2.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-robotics-primary focus:border-transparent"
                 />
               </div>
             </div>
             
             {/* Role Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Filter className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-robotics-primary focus:border-transparent"
+                className="w-full sm:w-auto min-w-0 px-3 py-2.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-robotics-primary focus:border-transparent"
               >
                 <option value="all">جميع الأدوار</option>
                 <option value={USER_ROLES.ADMIN}>{USER_ROLES.ADMIN}</option>
@@ -168,11 +159,12 @@ const UsersManagement = () => {
             </div>
             
             {/* Sort */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <ArrowUpDown className="w-4 h-4 text-gray-500" />
               <button
+                type="button"
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-robotics-primary focus:border-transparent"
+                className="px-3 py-2.5 sm:py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-robotics-primary focus:border-transparent touch-manipulation whitespace-nowrap"
                 title={sortOrder === 'asc' ? 'الأقدم أولاً' : 'الأحدث أولاً'}
               >
                 {sortOrder === 'asc' ? 'الأقدم أولاً' : 'الأحدث أولاً'}

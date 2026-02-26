@@ -388,7 +388,8 @@ tr:hover {
   }
   
   .card {
-    margin: 0 -4px;
+    margin: 0;
+    max-width: 100%;
   }
   
   th, td {

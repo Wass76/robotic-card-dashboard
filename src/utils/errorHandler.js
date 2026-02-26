@@ -119,6 +119,22 @@ export const getErrorMessage = (error) => {
 };
 
 /**
+ * Get a single user-friendly message from API errors (Laravel validation, etc.)
+ * Prefers first validation error message over generic "message" when present.
+ */
+export const getApiErrorMessage = (error) => {
+  if (typeof error === 'string') return error;
+  const res = error?.response;
+  if (res?.errors && typeof res.errors === 'object') {
+    const firstKey = Object.keys(res.errors)[0];
+    const messages = res.errors[firstKey];
+    if (Array.isArray(messages) && messages.length > 0) return messages[0];
+    if (typeof messages === 'string') return messages;
+  }
+  return res?.message || error?.message || getErrorMessage(error);
+};
+
+/**
  * Check if error is retryable
  */
 export const isRetryableError = (error) => {

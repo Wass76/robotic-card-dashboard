@@ -21,7 +21,8 @@ export const userSchema = z.object({
     .max(10, 'رقم الهاتف يجب أن يكون 10 أرقام')
     .regex(/^\d+$/, 'رقم الهاتف يجب أن يحتوي على أرقام فقط'),
   year: z
-    .number()
+    .coerce
+    .number({ invalid_type_error: 'السنة يجب أن تكون رقماً' })
     .min(1, 'السنة يجب أن تكون على الأقل 1')
     .max(10, 'السنة يجب أن تكون أقل من 10'),
   specialization: z

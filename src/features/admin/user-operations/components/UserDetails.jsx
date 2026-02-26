@@ -5,6 +5,7 @@ import { ArrowRight, Pencil, XCircle, CreditCard, Mail, Phone, Calendar, User, G
 import { useUserQuery, useDeleteUserMutation, useUpdateUserMutation } from '../hooks';
 import { useCardsQuery } from '../../card/hooks';
 import { useToast } from '../../../../components/common';
+import { getApiErrorMessage } from '../../../../utils/errorHandler';
 import Button from '../../../../components/common/Button';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 import ErrorMessage from '../../../../components/common/ErrorMessage';
@@ -32,7 +33,7 @@ const UserDetails = () => {
       deleteConfirmModal.close();
       navigate('/users');
     } catch (err) {
-      toast.showError(err.message || 'فشل في حذف المستخدم');
+      toast.showError(getApiErrorMessage(err) || 'فشل في حذف المستخدم');
     }
   };
 
@@ -45,7 +46,8 @@ const UserDetails = () => {
       toast.showSuccess('تم تحديث المستخدم بنجاح');
       editUserModal.close();
     } catch (err) {
-      toast.showError(err.message || 'فشل في تحديث المستخدم');
+      toast.showError(getApiErrorMessage(err) || 'فشل في تحديث المستخدم');
+      // Modal stays open so user can fix and retry
     }
   };
 
@@ -125,40 +127,41 @@ const UserDetails = () => {
   };
 
   const InfoField = ({ icon: Icon, label, value }) => (
-    <div className="flex items-start gap-3 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
-      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
-        {Icon && <Icon className="w-5 h-5 text-gray-600" />}
+    <div className="flex items-start gap-3 p-3 sm:p-4 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100 min-w-0">
+      <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+        {Icon && <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />}
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 overflow-hidden">
         <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">{label}</label>
-        <p className="text-base font-medium text-gray-900 break-words">{value}</p>
+        <p className="text-sm sm:text-base font-medium text-gray-900 break-words">{value}</p>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-4 sm:space-y-6 fade-in overflow-x-hidden">
       {/* Header with Back Button */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 min-w-0">
         <button
+          type="button"
           onClick={() => navigate('/users')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="flex-shrink-0 p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
           aria-label="رجوع"
         >
-          <ArrowRight className="w-6 h-6 text-gray-600" />
+          <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
         </button>
-        <h2 className="text-2xl font-bold text-gray-900">تفاصيل المستخدم</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate min-w-0">تفاصيل المستخدم</h2>
       </div>
 
       {/* User Details Card */}
-      <div className="card">
-        <div className="p-6 space-y-6">
+      <div className="card overflow-hidden">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* User Avatar and Name */}
-          <div className="flex flex-col items-center text-center pb-6 border-b border-gray-200">
-            <div className="w-24 h-24 gradient-robotics rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-xl mb-4">
+          <div className="flex flex-col items-center text-center pb-4 sm:pb-6 border-b border-gray-200">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 gradient-robotics rounded-full flex items-center justify-center text-white font-bold text-2xl sm:text-3xl shadow-xl mb-3 sm:mb-4">
               {getInitials()}
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">{getFullName()}</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 break-words text-balance">{getFullName()}</h3>
             <span className={`inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold ${
               user.role === 'Admin' 
                 ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md' 
@@ -215,7 +218,7 @@ const UserDetails = () => {
           {/* Card Status */}
           {hasCard !== undefined && (
             <div className="pt-4 border-t border-gray-200">
-              <div className={`flex items-center gap-4 p-5 rounded-xl ${
+              <div className={`flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl ${
                 hasCard 
                   ? 'bg-green-50 border-2 border-green-200' 
                   : 'bg-orange-50 border-2 border-orange-200'
@@ -245,7 +248,7 @@ const UserDetails = () => {
               <Button
                 variant="primary"
                 onClick={() => handleCreateCard(user)}
-                className="flex-1"
+                className="w-full sm:flex-1 min-h-[44px]"
               >
                 <CreditCard className="w-4 h-4 ml-2" />
                 إنشاء بطاقة
@@ -254,7 +257,7 @@ const UserDetails = () => {
             <Button
               variant="secondary"
               onClick={() => editUserModal.open('edit', user)}
-              className="flex-1"
+              className="w-full sm:flex-1 min-h-[44px]"
             >
               <Pencil className="w-4 h-4 ml-2" />
               تعديل
@@ -262,7 +265,7 @@ const UserDetails = () => {
             <Button
               variant="secondary"
               onClick={() => deleteConfirmModal.open('delete', user.id)}
-              className="flex-1 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border-red-200"
+              className="w-full sm:flex-1 min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border-red-200"
             >
               <XCircle className="w-4 h-4 ml-2" />
               حذف

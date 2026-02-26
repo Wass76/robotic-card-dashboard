@@ -20,7 +20,7 @@ const Input = ({
     : type;
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full min-w-0 ${className}`}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}
@@ -29,7 +29,7 @@ const Input = ({
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
             {icon}
           </div>
         )}
@@ -39,7 +39,7 @@ const Input = ({
           onChange={onChange}
           placeholder={placeholder}
           required={required}
-          className={`w-full px-4 py-3 ${icon ? 'pr-10' : ''} ${showPasswordToggle ? 'pl-10' : ''} border ${
+          className={`w-full min-w-0 box-border px-4 py-3 min-h-[44px] ${icon ? 'pr-10' : ''} ${showPasswordToggle ? 'pl-10' : ''} border ${
             error ? 'border-red-300' : 'border-gray-300'
           } rounded-xl focus:ring-2 focus:ring-robotics-primary focus:border-transparent ${
             error ? 'focus:ring-red-500' : ''
